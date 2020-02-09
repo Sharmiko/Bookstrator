@@ -14,8 +14,8 @@ class Encoder(nn.Module):
                         batch_first=True, bidirectional=True)
 
     # Fully connected layers for hidden and cell states
-    self.fc_h = nn.Linear(512 * 2, 512)
-    self.fc_c = nn.Linear(512 * 2, 512)
+    self.fc_h = nn.Linear(hidden_size * 2, hidden_size)
+    self.fc_c = nn.Linear(hidden_size * 2, hidden_size)
 
     # ReLU Activation function
     self.relu = nn.ReLU()
