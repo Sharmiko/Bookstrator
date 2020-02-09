@@ -1,0 +1,2 @@
+# Bookstrator
+AI Guardian project
