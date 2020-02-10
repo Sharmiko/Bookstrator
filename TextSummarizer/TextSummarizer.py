@@ -118,7 +118,14 @@ class EncoderAttention(nn.Module):
 
     # (2) Optional: If inter-temporal encoder attention is enabled
     if self.intra_encoder:
-      pass # TODO - 1: add inter-temporal structure
+      et_exp = torch.exp(et)
+      if sum_temporal is None:
+        et1 = et_exp
+        sum_temporal = torch.FloatTensor(et.size()).fill_(1e-10) + et_exp
+        sum_temporal = sum_temporal.to(device)
+      else:
+        et1 = et_exp / sum_temporal 
+        sum_temporal = sum_temporal + et_exp
     else:
       et1 = self.softmax(et, dim=1)
 
@@ -133,6 +140,6 @@ class EncoderAttention(nn.Module):
     cte = cte.squeeze(1)
     at = at.squeeze(1)
 
-    return cte, at, # add sum temporal padding from TODO -1
+    return cte, at, sum_temporal
 
 
