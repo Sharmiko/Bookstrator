@@ -4,6 +4,8 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from typing import Tuple
 
+device = ("cuda:0" if torch.cuda.is_available() else "cpu")
+
 class Encoder(nn.Module):
 
   def __init__(self, input_size, hidden_size):
@@ -184,3 +186,67 @@ class DecoderAttention(nn.Module):
       attention = torch.cat([attention, hidden_state.unsquueze(1)], dim = 1)
 
     return ctd, hidden_state
+
+class Decoder(nn.Module):
+
+  def __init__(self, hidden_dim, embed_dim, vocab_size):
+    super(Decoder, self).__init__()
+
+    self.encoder_attention = EncoderAttention(hidden_dim)
+    self.decoder_attention = DecoderAttention(hidden_dim)
+
+    self.context = nn.Linear(hidden_dim * 2 + embed_dim, embed_dim)
+
+    self.lstm = nn.LSTMCell(embed_dim, hidden_dim)
+
+    self.fc = nn.Linear(hidden_dim * 5 + embed_dim, 1)
+
+    self.v1 = nn.Linear(hidden_dim * 4, hidden_dim)
+    self.v2 = nn.Linear(hidden_dim, vocab_size)
+
+    self.sigmoid = nn.Sigmoid()
+    self.softmax = nn.Softmax()
+  def forward(self, x_t, s_t, encoder_out, encoder_padding, cte, zeros, 
+              encoder_batch_extend, sum_temporal, prev_state):
+    
+    t = self.context(torch.cat([x_t, cte], dim=1))
+    s_t = self.lstm(t, s_t)
+
+    decoder_hidden, decoder_cell = s_t 
+    st_hat = torch.cat([decoder_hidden, decoder_cell], dim=1)
+    cte, attention, sum_temporal = self.encoder_attention(st_hat, encoder_out,
+                                                          encoder_padding.
+                                                          sum_temporal)
+    ctd, prev_state = self.decoder_attention(decoder_hidden, prev_state)
+
+    gen = torch.cat([cte, ctd, st_hat, t], 1)
+    gen = self.fc(gen)
+    gen = self.sigmoid(gen)
+
+    out = torch.cat([decoder_hidden, cte, ctd], dim=1)
+    out = self.v1(out)
+    out = self.v2(out)
+
+    distribution = self.softmax(out, dim=1)
+    distribution = gen * distribution
+
+    attention = (1 - gen) * attention
+
+    if zeros is not None:
+      distribution = torch.cat([distribution, zeros], dim=1)
+    distribution = distribution.scatter_add(1, encoder_batch_extend, attention)
+
+    return distribution, s_t, cte, sum_temporal, prev_state
+    
+class TextSummarizer(nn.Module):
+
+  def __init__(self, input_size, hidden_size, embed_size, vocab_size):
+    super(TextSummarizer, self).__init__()
+
+    self.encoder = Encoder(input_size, hidden_size)
+    self.decoder = Decoder(hidden_size, embed_size, vocab_size)
+    self.embed = nn.Embedding(vocab_size, embed_size)
+
+    self.encoder = self.encoder.to(device)
+    self.decoder = self.decoder.to(device)
+    self.embed = self.embed.to(device)
