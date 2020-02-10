@@ -57,3 +57,58 @@ class Encoder(nn.Module):
 
     # return tensor, hidden and cell state
     return t, (h, c)
+
+class EncoderAttention(nn.Module):
+
+  def __init__(self, hidden_dim):
+    super(EncoderAttention, self).__init__()
+
+    # Linear Layers for attention
+    self.wh = nn.Linear(hidden_dim * 2, hidden_dim * 2, bias=False)
+    self.ws = nn.Linear(hidden_dim * 2, hidden_dim * 2)
+    self.v = nn.Linear(hidden_dim * 2, 1, bias=False)
+
+    self.tanh = nn.Tanh()
+    self.softmax = nn.Softmax()
+
+  
+  @property
+  def intra_encoder(self) -> bool:
+    return True
+
+  @property
+  def intra_decoder(self) -> bool:
+    return True
+
+  def forward(self, decoder_hidden, encoder_hidden, encoder_padding, 
+              sum_temporal) -> Tuple:
+
+    # (1) Standard Attention
+    #     Fully Connected Layer
+    #     Add out encoder and out decoder hidden states
+    #     Tanh Activation function
+    #     
+    et = self.wh(encoder_hidden)
+    dec = self.ws(decoder_hidden).unsqueeze(1)
+    et = et + dec 
+    et = self.tanh(et)
+    et = self.v(et).squeeze(2)
+
+    # (2) Optional: If inter-temporal encoder attention is enabled
+    if self.intra_encoder:
+      pass # TODO - 1: add inter-temporal structure
+    else:
+      et1 = self.softmax(et, dim=1)
+
+    # (3) Add probability of zero to padded elements
+    at = et1 * encoder_padding 
+    norm = at.sum(1, keepdim=True)
+    at = at / norm
+    at = at.unsquueze(1)
+
+    # (4) Calculate enocder context vector
+    cte = torch.bmm(at, encoder_hidden)
+    cte = cte.squeeze(1)
+    at = at.squeeze(1)
+
+    return cte, at, # add sum temporal padding from TODO -1
