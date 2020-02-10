@@ -127,3 +127,60 @@ class EncoderAttention(nn.Module):
     return cte, at, sum_temporal
 
 
+class DecoderAttention(nn.Module):
+
+  def __init__(self, hidden_dim):
+    super(DecoderAttention, self).__init__()
+
+    self._intra_decoder = True
+
+    # If intra decoder is enabled initialize layers
+    if self.intra_decoder:
+      self.w_prev = nn.Linear(hidden_dim, hidden_dim, bias=False)
+      self.ws = nn.Linear(hidden_dim, hidden_dim)
+      self.v = nn.Linear(hidden_dim, 1, bias=False)
+
+    self.tanh = nn.Tanh()
+    self.relu = nn.ReLU()
+
+  @property
+  def intra_decoder(self) -> bool:
+    """
+    intra_decoder getter
+    """
+    return self._intra_decoder
+
+  @intra_decoder.setter
+  def intra_decoder(self, is_enabled: bool) -> bool:
+    """
+    intra_decoder setter
+    """
+    self._intra_decoder = is_enabled
+
+  def forward(self, hidden_state, attention):
+
+    # If Intra decoder is not enabled
+    # create zeros with same dim as hidden state
+    if not self.intra_decoder:
+      ctd = torch.zeros(hidden_state.size()).to(device)
+    # If no attention was provided
+    elif attention is None:
+      ctd = torch.zeros(hidden_state.size()).to(device)
+      attention = hidden_state.unsquueze(1)
+    # Standard Attention
+    # Fully Connected Layer
+    # Add out encoder and out decoder hidden states
+    # Tanh Activation function 
+    else:
+      et = self.w_prev(attention)
+      fea = self.ws(hidden_state).unsquueze(1)
+      et = et + fea
+      et = self.tanh(et)
+      et = self.v(et).squueze(2)
+
+      # Decoder attention
+      at = self.softmax(et, dim=1).unsqueeze(1)
+      ctd = torch.bmm(at, attention).squeeze(1)
+      attention = torch.cat([attention, hidden_state.unsquueze(1)], dim = 1)
+
+    return ctd, hidden_state
