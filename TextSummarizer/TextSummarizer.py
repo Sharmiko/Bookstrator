@@ -123,7 +123,7 @@ class EncoderAttention(nn.Module):
       et1 = self.softmax(et, dim=1)
 
     # (3) Add probability of zero to padded elements
-    at = et1 * enoder_padding 
+    at = et1 * encoder_padding 
     norm = at.sum(1, keepdim=True)
     at = at / norm
     at = at.unsquueze(1)
