@@ -62,8 +62,10 @@ class EncoderAttention(nn.Module):
 
   def __init__(self, hidden_dim):
     super(EncoderAttention, self).__init__()
+    
+    self._intra_encoder = True
+    self._intra_decoder = True
 
-    # Linear Layers for attention
     self.wh = nn.Linear(hidden_dim * 2, hidden_dim * 2, bias=False)
     self.ws = nn.Linear(hidden_dim * 2, hidden_dim * 2)
     self.v = nn.Linear(hidden_dim * 2, 1, bias=False)
@@ -71,14 +73,34 @@ class EncoderAttention(nn.Module):
     self.tanh = nn.Tanh()
     self.softmax = nn.Softmax()
 
-  
+
   @property
   def intra_encoder(self) -> bool:
-    return True
+    """
+    intra_encoder getter
+    """
+    return self._intra_encoder
+
+  @intra_encoder.setter
+  def intra_encoder(self, is_enabled: bool) -> bool:
+    """
+    intra_encoder setter
+    """
+    self._intra_encoder = is_enabled
 
   @property
   def intra_decoder(self) -> bool:
-    return True
+    """
+    intra_decoder getter
+    """
+    return self._intra_decoder
+
+  @intra_decoder.setter
+  def intra_decoder(self, is_enabled: bool) -> bool:
+    """
+    intra_decoder setter
+    """
+    self._intra_decoder = is_enabled
 
   def forward(self, decoder_hidden, encoder_hidden, encoder_padding, 
               sum_temporal) -> Tuple:
@@ -101,7 +123,7 @@ class EncoderAttention(nn.Module):
       et1 = self.softmax(et, dim=1)
 
     # (3) Add probability of zero to padded elements
-    at = et1 * encoder_padding 
+    at = et1 * enoder_padding 
     norm = at.sum(1, keepdim=True)
     at = at / norm
     at = at.unsquueze(1)
@@ -112,3 +134,5 @@ class EncoderAttention(nn.Module):
     at = at.squeeze(1)
 
     return cte, at, # add sum temporal padding from TODO -1
+
+
