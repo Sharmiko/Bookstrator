@@ -93,8 +93,7 @@ class EncoderAttention(nn.Module):
     # (1) Standard Attention
     #     Fully Connected Layer
     #     Add out encoder and out decoder hidden states
-    #     Tanh Activation function
-    #     
+    #     Tanh Activation function  
     et = self.wh(encoder_hidden)
     dec = self.ws(decoder_hidden).unsqueeze(1)
     et = et + dec 
