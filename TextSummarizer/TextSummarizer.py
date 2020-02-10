@@ -64,7 +64,6 @@ class EncoderAttention(nn.Module):
     super(EncoderAttention, self).__init__()
     
     self._intra_encoder = True
-    self._intra_decoder = True
 
     self.wh = nn.Linear(hidden_dim * 2, hidden_dim * 2, bias=False)
     self.ws = nn.Linear(hidden_dim * 2, hidden_dim * 2)
@@ -87,20 +86,6 @@ class EncoderAttention(nn.Module):
     intra_encoder setter
     """
     self._intra_encoder = is_enabled
-
-  @property
-  def intra_decoder(self) -> bool:
-    """
-    intra_decoder getter
-    """
-    return self._intra_decoder
-
-  @intra_decoder.setter
-  def intra_decoder(self, is_enabled: bool) -> bool:
-    """
-    intra_decoder setter
-    """
-    self._intra_decoder = is_enabled
 
   def forward(self, decoder_hidden, encoder_hidden, encoder_padding, 
               sum_temporal) -> Tuple:
