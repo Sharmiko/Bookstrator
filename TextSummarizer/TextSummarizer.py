@@ -67,10 +67,12 @@ class EncoderAttention(nn.Module):
     
     self._intra_encoder = True
 
+    # Dense Layers
     self.wh = nn.Linear(hidden_dim * 2, hidden_dim * 2, bias=False)
     self.ws = nn.Linear(hidden_dim * 2, hidden_dim * 2)
     self.v = nn.Linear(hidden_dim * 2, 1, bias=False)
 
+    # Activations Functions
     self.tanh = nn.Tanh()
     self.softmax = nn.Softmax()
 
@@ -142,6 +144,7 @@ class DecoderAttention(nn.Module):
       self.ws = nn.Linear(hidden_dim, hidden_dim)
       self.v = nn.Linear(hidden_dim, 1, bias=False)
 
+    # Activation Functions 
     self.tanh = nn.Tanh()
     self.relu = nn.ReLU()
 
@@ -192,20 +195,26 @@ class Decoder(nn.Module):
   def __init__(self, hidden_dim, embed_dim, vocab_size):
     super(Decoder, self).__init__()
 
+    # Attention Layers
     self.encoder_attention = EncoderAttention(hidden_dim)
     self.decoder_attention = DecoderAttention(hidden_dim)
 
+    # Context 
     self.context = nn.Linear(hidden_dim * 2 + embed_dim, embed_dim)
 
+    # LSTM Layer
     self.lstm = nn.LSTMCell(embed_dim, hidden_dim)
 
+    # Dense Layer
     self.fc = nn.Linear(hidden_dim * 5 + embed_dim, 1)
 
     self.v1 = nn.Linear(hidden_dim * 4, hidden_dim)
     self.v2 = nn.Linear(hidden_dim, vocab_size)
 
+    # Activation Functions
     self.sigmoid = nn.Sigmoid()
     self.softmax = nn.Softmax()
+
   def forward(self, x_t, s_t, encoder_out, encoder_padding, cte, zeros, 
               encoder_batch_extend, sum_temporal, prev_state):
     
@@ -243,10 +252,12 @@ class TextSummarizer(nn.Module):
   def __init__(self, input_size, hidden_size, embed_size, vocab_size):
     super(TextSummarizer, self).__init__()
 
+    # Encoder, Decoder, Embed Layer
     self.encoder = Encoder(input_size, hidden_size)
     self.decoder = Decoder(hidden_size, embed_size, vocab_size)
     self.embed = nn.Embedding(vocab_size, embed_size)
 
+     # Convert models into appropriate device
     self.encoder = self.encoder.to(device)
     self.decoder = self.decoder.to(device)
     self.embed = self.embed.to(device)
