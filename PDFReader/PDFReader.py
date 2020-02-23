@@ -12,6 +12,44 @@ class PDFReader(object):
             pdf_file (str): Location of the pdf file
         """
         self.pdf = fitz.open(pdf_file)
+        self._title_size = 20
+        self._body_size = 10
+
+
+    @property
+    def title_size(self) -> int:
+        """Returns font size of the title on the content page
+
+        """
+        return self._title_size
+
+
+    @title_size.setter
+    def title_size(self, size: int):
+        """Title size setter
+
+        Parameters:
+            size (int): font size of the title
+        """
+        self._title_size = size 
+
+
+    @property
+    def body_size(self) -> int:
+        """Returns font size of the body on the content page
+
+        """
+        return self._body_size
+
+
+    @body_size.setter
+    def body_size(self, size: int):
+        """Body size setter
+
+        Parameters:
+            size (int): font size of the body
+        """
+        self._body_size = size 
 
 
     @property
@@ -22,6 +60,7 @@ class PDFReader(object):
             int: number of pages
         """
         return self.pdf.pageCount
+
 
     def clean_content(self, blocks: List, title_size:int=20, 
                       body_size:int=10) -> Dict:
@@ -64,6 +103,7 @@ class PDFReader(object):
 
         return {"title": title, "body": body}
 
+
     def getPageContent(self, page: int) -> Dict:
         """ Return extracted text from the requested page
         
@@ -78,6 +118,7 @@ class PDFReader(object):
         load_page = self.pdf.loadPage(page)
         blocks = load_page.getDisplayList().getTextPage().extractDICT().get("blocks")
         return self.clean_content(blocks)
+
 
     def to_csv(self, file_name: str, start_page: int, end_page: int):
         """ Function that converts contents of the given range of pages
