@@ -1,0 +1,23 @@
+{
+	"name": "bookstrator_csvoutput",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "BookstratorLinkedService",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "outputs.csv",
+				"folderPath": "csvouputs",
+				"container": "azureml"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
