@@ -7,12 +7,14 @@ python convert_to_csv.py --input_file=X --output_file=X --title_size=X --body_si
 ```
 </br>
 
---input_file - path/location of the input pdf file</br>
---output_file - path/location of the output csv file</br>
---title_size - font size of the title on the content page, default value 20</br>
---body_size - font size of the body on the content page, default value 10</br>
---start_page - starting page, where to began conversion from</br>
---end_page - page number where to end pdf conversion</br>
+Arguments | Description
+----------|------------
+--input_file | path/location of the input pdf file</br>
+--output_file | path/location of the output csv file</br>
+--title_size | font size of the title on the content page, default value 20</br>
+--body_size | font size of the body on the content page, default value 10</br>
+--start_page | starting page, where to began conversion from</br>
+--end_page | page number where to end pdf conversion</br>
 
 ## Example
 
