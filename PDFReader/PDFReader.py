@@ -62,8 +62,7 @@ class PDFReader(object):
         return self.pdf.pageCount
 
 
-    def clean_content(self, blocks: List, title_size:int=20, 
-                      body_size:int=10) -> Dict:
+    def clean_content(self, blocks: List) -> Dict:
         """ Function that extracts textual information based on 
             font meta-data.
 
@@ -95,10 +94,10 @@ class PDFReader(object):
                 spans = line.get("spans")[0]
 
                 # extract title
-                if int(spans.get("size")) == title_size:
+                if int(spans.get("size")) == self.title_size:
                     title += spans.get("text")
                 # extract content of body
-                elif int(spans.get("size")) == body_size:
+                elif int(spans.get("size")) == self.body_size:
                     body += spans.get("text")
 
         return {"title": title, "body": body}
