@@ -149,4 +149,4 @@ class PDFReader(object):
                 content_dict.append(temp)
         
         df = pd.DataFrame(content_dict)
-        df.to_csv("out.csv", index=False)
+        df.to_csv(file_name, index=False)
