@@ -14,4 +14,4 @@ if __name__ == "__main__":
 
     pdf_reader = PDFReader(opt.input_file)
 
-    pdf_reader.to_csv(opt.output_file)
+    pdf_reader.to_csv(opt.output_file, opt.start_page, opt.end_page)
