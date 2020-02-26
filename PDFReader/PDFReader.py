@@ -1,7 +1,7 @@
 import fitz 
 import pandas as pd 
 
-from typing import List, Dict
+from typing import List, Dict, Set
 
 class PDFReader(object):
     
@@ -24,33 +24,36 @@ class PDFReader(object):
         return self.pdf.pageCount
 
     
-    def __auto_detect_font(self, blocks: List) -> Dict:
-        """Functiom that autodetects font-sizes on the given Page
+    def __auto_detect_font(self, block_list: List[List]) -> Dict:
+        """Functiom that autodetects font-sizes on the whole document
 
         Parameters:
-            blocks (List):
+            block_list (List[List]):
 
         Returns:
             Dict: dictionary of font-sizes and their corresponding
                   text frequency
         """
         font_dict = dict()
+        font_tester = set() 
 
-        for block in blocks:
-            lines: Dict = block.get("lines")
+        for blocks in block_list:
+            for block in blocks:
+                lines: Dict = block.get("lines")
 
-            for line in lines:
-                spans: Dict = line.get("spans")[0]
-
-                font_count: int = font_dict.get(spans.get("size"), 0)
-                current_count: int = len(spans.get("text"))
-
-                font_dict[spans.get("size")] = font_count + current_count
+                for line in lines:
+                    spans: Dict = line.get("spans")[0]
+                    
+                    if spans.get("text") not in font_tester:
+                        font_tester.add(spans.get("text"))
+                        font_count: int = font_dict.get(spans.get("size"), 0)
+                        current_count: int = len(spans.get("text"))
+                        font_dict[spans.get("size")] = font_count + current_count
 
         return font_dict
 
 
-    def __clean_content(self, blocks: List) -> Dict:
+    def __clean_content(self, block_list: List[List], blocks: List) -> Dict:
         """ Function that extracts textual information based on 
             font meta-data.
 
@@ -62,7 +65,9 @@ class PDFReader(object):
                 footer and it's ignored.
 
         Parameters:
-            blocks (list): 
+            block_list (List[List]):
+
+            blocks (List): 
 
             title_size (int): font-size of the title on the content page
 
@@ -75,7 +80,7 @@ class PDFReader(object):
         body = ""
         title = ""
 
-        font_dict: Dict = self.__auto_detect_font(blocks)
+        font_dict: Dict = self.__auto_detect_font(block_list)
         body_font: int = max(font_dict, key=font_dict.get)
         font_dict[body_font] = -1
         title_font: int = max(font_dict, key=font_dict.get)
@@ -97,7 +102,7 @@ class PDFReader(object):
         return {"title": title, "body": body}
 
 
-    def getPageContent(self, page: int) -> Dict:
+    def getPageContent(self, page: int, start_page: int, end_page: int) -> Dict:
         """ Return extracted text from the requested page
         
         Parameters:
@@ -108,10 +113,17 @@ class PDFReader(object):
                   the title and the body 
         """
 
+        block_list: List = []
+
+        for i in range(start_page, end_page):
+            load_page = self.pdf.loadPage(i)
+            blocks = load_page.getDisplayList().getTextPage().extractDICT().get("blocks")
+            block_list.append(blocks)
+            
         load_page = self.pdf.loadPage(page)
         blocks = load_page.getDisplayList().getTextPage().extractDICT().get("blocks")
 
-        return self.__clean_content(blocks)
+        return self.__clean_content(block_list, blocks)
 
 
     def to_csv(self, file_name: str, start_page: int, end_page: int):
@@ -127,10 +139,11 @@ class PDFReader(object):
 
             end_page (int): ending page of the range 
         """
-        content_dict: List[Dict] = list()
+        content_dict: List[Dict] = []
+        
         for page in range(start_page, end_page):
             temp = {}
-            content = self.getPageContent(page)
+            content = self.getPageContent(page, start_page, end_page)
             title, body = content.get("title"), content.get("body")
 
             # case when text is continued on other page
@@ -142,6 +155,6 @@ class PDFReader(object):
                 temp["title"] = title 
                 temp["body"] = body
                 content_dict.append(temp)
-        
+
         df = pd.DataFrame(content_dict)
         df.to_csv(file_name, index=False)
