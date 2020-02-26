@@ -114,7 +114,7 @@ class PDFReader(object):
         return self.__clean_content(blocks)
 
 
-    def to_csv(self, file_name: str, start_page: int, end_page: int):
+    def to_csv(self, file_name: str):
         """ Function that converts contents of the given range of pages
             into pandas DataFrame csv file 
             User must provide starting and ending page of the pdf file,
