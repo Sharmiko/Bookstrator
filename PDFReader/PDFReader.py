@@ -12,44 +12,6 @@ class PDFReader(object):
             pdf_file (str): Location of the pdf file
         """
         self.pdf = fitz.open(pdf_file)
-        self._title_size = 20
-        self._body_size = 10
-
-
-    @property
-    def title_size(self) -> int:
-        """Returns font size of the title on the content page
-
-        """
-        return self._title_size
-
-
-    @title_size.setter
-    def title_size(self, size: int):
-        """Title size setter
-
-        Parameters:
-            size (int): font size of the title
-        """
-        self._title_size = size 
-
-
-    @property
-    def body_size(self) -> int:
-        """Returns font size of the body on the content page
-
-        """
-        return self._body_size
-
-
-    @body_size.setter
-    def body_size(self, size: int):
-        """Body size setter
-
-        Parameters:
-            size (int): font size of the body
-        """
-        self._body_size = size 
 
 
     @property
@@ -61,8 +23,34 @@ class PDFReader(object):
         """
         return self.pdf.pageCount
 
+    
+    def __auto_detect_font(self, blocks: List) -> Dict:
+        """Functiom that autodetects font-sizes on the given Page
 
-    def clean_content(self, blocks: List) -> Dict:
+        Parameters:
+            blocks (List):
+
+        Returns:
+            Dict: dictionary of font-sizes and their corresponding
+                  text frequency
+        """
+        font_dict = dict()
+
+        for block in blocks:
+            lines: Dict = block.get("lines")
+
+            for line in lines:
+                spans: Dict = line.get("spans")[0]
+
+                font_count: int = font_dict.get(spans.get("size"), 0)
+                current_count: int = len(spans.get("text"))
+
+                font_dict[spans.get("size")] = font_count + current_count
+
+        return font_dict
+
+
+    def __clean_content(self, blocks: List) -> Dict:
         """ Function that extracts textual information based on 
             font meta-data.
 
@@ -84,22 +72,28 @@ class PDFReader(object):
             Dict: dictionary of the title and the body
         """
 
-        title = ""
         body = ""
+        title = ""
+
+        font_dict: Dict = self.__auto_detect_font(blocks)
+        body_font: int = max(font_dict, key=font_dict.get)
+        font_dict[body_font] = -1
+        title_font: int = max(font_dict, key=font_dict.get)
+
 
         for block in blocks:
-            lines = block.get("lines")
+            lines: Dict = block.get("lines")
 
             for line in lines:
                 spans = line.get("spans")[0]
 
-                # extract title
-                if int(spans.get("size")) == self.title_size:
-                    title += spans.get("text")
                 # extract content of body
-                elif int(spans.get("size")) == self.body_size:
+                if int(spans.get("size")) == body_font:
                     body += spans.get("text")
+                elif int(spans.get("size")) == title_font:
+                    title += spans.get("text")
 
+        
         return {"title": title, "body": body}
 
 
@@ -116,7 +110,8 @@ class PDFReader(object):
 
         load_page = self.pdf.loadPage(page)
         blocks = load_page.getDisplayList().getTextPage().extractDICT().get("blocks")
-        return self.clean_content(blocks)
+
+        return self.__clean_content(blocks)
 
 
     def to_csv(self, file_name: str, start_page: int, end_page: int):
