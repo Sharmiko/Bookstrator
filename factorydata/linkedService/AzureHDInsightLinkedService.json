@@ -1,0 +1,32 @@
+{
+	"name": "AzureHDInsightLinkedService",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "HDInsightOnDemand",
+		"typeProperties": {
+			"clusterType": "spark",
+			"clusterSize": 4,
+			"timeToLive": "00:15:00",
+			"version": "3.6",
+			"hostSubscriptionId": "cd309673-f356-437c-b53a-ef46d5ec9635",
+			"clusterResourceGroup": "bookstrator_intro",
+			"servicePrincipalId": "67a953ab-954d-4d9d-99c2-e3d04c10344f",
+			"tenant": "4e15d6e6-5843-454b-a458-ac5af13716de",
+			"clusterNamePrefix": "",
+			"clusterUserName": "ClusterName",
+			"sparkVersion": "",
+			"additionalLinkedServiceNames": [],
+			"linkedServiceName": {
+				"referenceName": "AzureBlobStorage1",
+				"type": "LinkedServiceReference"
+			},
+			"headNodeSize": "",
+			"dataNodeSize": "",
+			"zookeeperNodeSize": "",
+			"subnetName": "",
+			"virtualNetworkId": "",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkZJUlNUQk9PS1NUUkFUT1JfM2I3OGI0MWUtNmEwYi00YjUzLWJkMWItM2FkMjI1YTNlZjM2Ig0KfQ=="
+		}
+	}
+}
