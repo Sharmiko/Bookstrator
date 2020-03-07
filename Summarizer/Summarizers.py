@@ -20,6 +20,9 @@ class Summarizers(object):
 
     """
 
+    def __init__(self):
+        self.bert_summarizer = Summarizer()
+
     def summarize(self, text: str, summarizer: str="bert") -> str:
         """Function that summarizes text based on chosen model
 
@@ -59,8 +62,7 @@ class Summarizers(object):
         Returns:
             str: summarized text
         """
-        summarizer = Summarizer()
-        text = ''.join(summarizer(text, max_length=max_length))
+        text = ''.join(self.bert_summarizer(text, max_length=max_length))
 
         return text 
 
