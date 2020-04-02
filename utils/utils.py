@@ -1,21 +1,28 @@
 import spacy 
 import pandas as pd 
 
-nlp = spacy.load("en_core_web_sm")
-to_keep = ["NOUN", "ADV", "VERB", "PROPN", "NUM"]
-
+nlp = spacy.load("en_core_web_lg")
+#to_keep = ["NOUN", "ADV", "VERB", "PROPN", "NUM"]
+to_keep = ["NOUN"]
 def clean_text(text):
     doc = nlp(text)
     new_text = []
-    for token in doc:    
-        if token.pos_ in to_keep:
-            new_text.append(token.lemma_)
+    # for token in doc:    
+    #     if token.pos_ in to_keep:
+    #         print(token, token.pos_, token.lemma_, token.label_)
+    #         new_text.append(token.lemma_)
     
-    return " ".join(new_text)
+    to_discrad = ["DATE"]
+    for token in doc.ents:
+        print(token, token.label_)
+        if token.label_ not in to_discrad:
+            new_text.append(token)
+    
+    return new_text
 
 
 df = pd.read_csv("out_sum.csv")
-sample = df["body"][0]
+sample = df["body"][2].lower()
 print("ORIGINAL: \n", sample)
 print("")
-print("REDUCES: \n", clean_text(sample))
+print("REDUCED: \n", set(clean_text(sample)))

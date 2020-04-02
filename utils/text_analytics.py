@@ -1,5 +1,6 @@
 import argparse
 
+import spacy 
 import pandas as pd
 from tqdm import tqdm
 from azure.ai.textanalytics import TextAnalyticsClient, TextAnalyticsApiKeyCredential
@@ -71,11 +72,17 @@ if __name__ == "__main__":
     df = pd.read_csv(opt.input_file)
     fables = df["body"]
 
-    print("Extracting key phrases...")
     key_phrases = list()
+    print("Extracting key phrases...")
     for fable in tqdm(fables):
-        key_phrases.append(key_phrase_extraction(client, [fable]))
-    df["key_phrases"] = key_phrases
+        phrase = key_phrase_extraction(client, [fable])
+        phrase = " ".join(phrase)
+        key_phrases.append(phrase)
     print("Done!")
+    
+    print()
+    print("Sample Output:")
+    print(key_phrases[0] + "...")
 
-    df.to_csv(opt.output_file, index=False)
+    out = pd.DataFrame({"fables": fables, "key_phrases": key_phrases})
+    out.to_csv(opt.output_file, index=False)
